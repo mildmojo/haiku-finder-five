@@ -52,7 +52,7 @@ file = Pathname.new(file)
 case file.extname.downcase
   when '.pdf'
     `pdftotext -v 2>&1`
-    if $?.success?
+    if [0, 99].include?($?.exitstatus)
       text = `pdftotext "#{file}" -`
     else
       STDERR.puts 'Please install xpdf to process PDF files (pdftotext required)'

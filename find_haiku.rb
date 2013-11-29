@@ -26,7 +26,7 @@ puts 'Include imperfect haiku sentences: ' + INCLUDE_IMPERFECT.to_s
 class BadSyllablesError < StandardError; end
 
 db = SQLite3::Database.open('words.sqlite3')
-find_word = db.prepare 'SELECT * FROM words WHERE word = ?'
+Find_word = db.prepare 'SELECT * FROM words WHERE word = ?'
 
 def snarf words, syllable_count
   line = []
@@ -39,6 +39,35 @@ def snarf words, syllable_count
     return line.join(' ') if syllables == syllable_count
   end
   raise BadSyllablesError
+end
+
+def get_word_stats word, extra_syllables = 0
+  stats = Find_word.execute(word.downcase).to_a.first
+  syllable_count = stats ? (stats[2] + extra_syllables) : 0
+  retval = {
+    word: word,
+    syllable_count: syllable_count
+  }
+  if stats
+    return retval
+  else
+    case word
+      when /tion$/
+        return get_word_stats(word.sub(/tion$/, 'te'), 1).tap { |s| s[:word] = word }
+      when /ssion$/
+        return get_word_stats(word.sub(/ssion$/, 'ss'), 1).tap { |s| s[:word] = word }
+      when /sion$/
+        return get_word_stats(word.sub(/sion$/, 'de'), 1).tap { |s| s[:word] = word }
+      when /ing$/
+        return get_word_stats(word.sub(/ing$/, ''), 1).tap { |s| s[:word] = word }
+      when /(ses|ces|ges)$/
+        return get_word_stats(word.sub(/s$/, ''), 1).tap { |s| s[:word] = word }
+      when /s$/
+        return get_word_stats(word.sub(/s$/, '')).tap { |s| s[:word] = word }
+      else
+        return retval
+    end
+  end
 end
 
 file = ARGV.shift
@@ -67,11 +96,7 @@ sentences = Scalpel.cut(text)
 sentences.each do |sentence|
   sentence = sentence.gsub(/[\n\r]/, ' ').gsub(/[^A-Za-z\s]/, '').gsub(/\s+/, ' ')
   words = sentence.split(/\s+/)
-  words = words.map { |word|
-    stats = find_word.execute(word.downcase).to_a.first
-    { word: word,
-      syllable_count: stats ? stats[2] : 0 }
-  }
+  words = words.map { |word| get_word_stats(word) }
   total_syllable_count = words.inject(0) { |sum, word| sum + word[:syllable_count] }
   haiku = []
   if words.all? { |word| word[:syllable_count] > 0 }

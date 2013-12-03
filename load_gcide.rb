@@ -18,7 +18,7 @@ db.execute "PRAGMA synchronous=OFF"
 db.execute "PRAGMA count_changes=OFF"
 db.execute "PRAGMA journal_mode=MEMORY"
 db.execute "PRAGMA temp_store=MEMORY"
-db.execute "PRAGMA auto_vacuum=true"
+db.execute "PRAGMA auto_vacuum=FULL"
 
 db.execute <<-SQL
   CREATE TABLE IF NOT EXISTS words (

@@ -20,7 +20,7 @@ $ ruby find_haiku.rb my_resume.pdf
 PERFECT
 In my spare time I
 collect vintage bottle caps
-from Pepsi products.
+from antique bottles.
 ```
 
 Haiku marked "PERFECT" are single sentences that follow the 5/7/5 structure.
